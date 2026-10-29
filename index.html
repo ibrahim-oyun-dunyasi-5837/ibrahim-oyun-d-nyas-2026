@@ -1,0 +1,161 @@
+
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>İbrahim'in Oyun Dünyası</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;color:white;text-align:center;
+background:radial-gradient(circle at top,#452078,#10051f 75%);min-height:100vh}
+header{padding:30px 15px 15px}
+h1{color:#e9d5ff;text-shadow:0 0 20px #c084fc}
+p{line-height:1.5}
+main{max-width:850px;margin:auto;padding:12px}
+.card{background:#211438dd;border:1px solid #8b5cf6;border-radius:20px;
+padding:22px;margin:18px 0;box-shadow:0 0 22px #7c3aed22}
+input{width:min(100%,300px);padding:13px;border-radius:10px;border:1px solid #a78bfa;
+font-size:16px;margin:6px}
+button{border:0;border-radius:12px;padding:13px 18px;margin:6px;
+font-weight:bold;font-size:15px;cursor:pointer;color:white;
+background:linear-gradient(100deg,#7c3aed,#db2777)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.big{font-size:28px;font-weight:bold;color:#f0abfc;margin:12px}
+#target{width:145px;height:145px;border-radius:50%;font-size:22px;
+background:linear-gradient(135deg,#06b6d4,#9333ea);box-shadow:0 0 28px #a855f7}
+.bubble{position:fixed;bottom:-60px;border-radius:50%;pointer-events:none;
+z-index:-1;animation:rise 5s linear forwards}
+@keyframes rise{to{transform:translateY(-115vh) rotate(360deg);opacity:0}}
+footer{padding:20px;color:#c4b5fd}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 İBRAHİM'İN OYUN DÜNYASI 🎮</h1>
+  <p>Oyun oyna, puan kazan, rekorunu kır!</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>👋 Hoş Geldin!</h2>
+    <p>Önce ismini yaz abi.</p>
+    <input id="name" placeholder="İsmin nedir?">
+    <br>
+    <button onclick="greet()">SELAM VER!</button>
+    <h3 id="welcome">Seni burada görmek güzel!</h3>
+  </section>
+
+  <section class="card">
+    <h2>🎯 Sayı Tahmin Oyunu</h2>
+    <p>1 ile 20 arasında bir sayı tuttum. Tahmin et!</p>
+    <input id="guess" type="number" min="1" max="20" placeholder="Tahminin">
+    <br>
+    <button onclick="checkGuess()">TAHMİN ET</button>
+    <button onclick="newNumber()">YENİ SAYI</button>
+    <p id="hint">Hadi başlayalım!</p>
+    <p>Doğru tahmin puanı: <span class="big">+10</span></p>
+  </section>
+
+  <section class="card">
+    <h2>⚡ 10 Saniyelik Tıklama Yarışı</h2>
+    <p>Süre bitmeden olabildiğince çok tıkla!</p>
+    <p>Kalan süre: <span class="big" id="time">10</span></p>
+    <p>Tıklama: <span class="big" id="clicks">0</span></p>
+    <p>Rekor: <span class="big" id="record">0</span></p>
+    <button id="start" onclick="startGame()">OYUNU BAŞLAT</button>
+    <br>
+    <button id="target" onclick="tap()" disabled>TIKLA!</button>
+    <p id="clickMessage">Başlat butonuna bas!</p>
+  </section>
+
+  <section class="card">
+    <h2>🏆 Toplam Puanın</h2>
+    <p class="big" id="points">0</p>
+    <p>Oynadıkça puanlarını artır!</p>
+  </section>
+</main>
+
+<footer>💜 İbrahim'in Oyun Dünyası — İyi eğlenceler!</footer>
+
+<script>
+let points=0;
+let number=Math.floor(Math.random()*20)+1;
+let guessed=false;
+let clicks=0,timeLeft=10,playing=false,timer=null;
+let record=Number(localStorage.getItem("ibrahimClickRecord")||0);
+document.getElementById("record").textContent=record;
+
+function addPoints(n){
+  points+=n;
+  document.getElementById("points").textContent=points;
+}
+function greet(){
+  let name=document.getElementById("name").value.trim();
+  if(!name){document.getElementById("welcome").textContent="Önce ismini yaz!";return}
+  document.getElementById("welcome").textContent="Merhaba "+name+"! 🎉 Siteme hoş geldin!";
+  for(let i=0;i<24;i++)makeBubble();
+}
+function makeBubble(){
+  let b=document.createElement("div");
+  b.className="bubble";
+  let size=10+Math.random()*35;
+  b.style.width=size+"px";b.style.height=size+"px";
+  b.style.left=Math.random()*100+"vw";
+  b.style.background=["#f472b6","#a78bfa","#22d3ee","#facc15","#4ade80"][Math.floor(Math.random()*5)];
+  b.style.opacity=".8";
+  document.body.appendChild(b);
+  setTimeout(()=>b.remove(),5000);
+}
+function checkGuess(){
+  let g=Number(document.getElementById("guess").value);
+  let hint=document.getElementById("hint");
+  if(guessed){hint.textContent="Yeni sayı için YENİ SAYI'ya bas!";return}
+  if(!g||g<1||g>20){hint.textContent="1 ile 20 arasında bir sayı yaz!";return}
+  if(g===number){
+    hint.textContent="Bildin! +10 puan kazandın! 🎉";
+    addPoints(10);guessed=true;
+    for(let i=0;i<12;i++)makeBubble();
+  }else if(g<number){hint.textContent="Daha büyük bir sayı dene!";}
+  else{hint.textContent="Daha küçük bir sayı dene!";}
+}
+function newNumber(){
+  number=Math.floor(Math.random()*20)+1;guessed=false;
+  document.getElementById("guess").value="";
+  document.getElementById("hint").textContent="Yeni sayı hazır! Tahmin et.";
+}
+function startGame(){
+  clearInterval(timer);clicks=0;timeLeft=10;playing=true;
+  document.getElementById("clicks").textContent=0;
+  document.getElementById("time").textContent=10;
+  document.getElementById("target").disabled=false;
+  document.getElementById("start").disabled=true;
+  document.getElementById("clickMessage").textContent="Hızlı tıkla! 🔥";
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("time").textContent=timeLeft;
+    if(timeLeft<=0){
+      clearInterval(timer);playing=false;
+      document.getElementById("target").disabled=true;
+      document.getElementById("start").disabled=false;
+      document.getElementById("start").textContent="TEKRAR OYNA";
+      document.getElementById("clickMessage").textContent="Süren bitti! "+clicks+" tıklama!";
+      addPoints(clicks);
+      if(clicks>record){
+        record=clicks;
+        localStorage.setItem("ibrahimClickRecord",record);
+        document.getElementById("record").textContent=record;
+        document.getElementById("clickMessage").textContent+=" 🏆 Yeni rekor!";
+      }
+    }
+  },1000);
+}
+function tap(){
+  if(!playing)return;
+  clicks++;
+  document.getElementById("clicks").textContent=clicks;
+}
+</script>
+</body>
+</html>
